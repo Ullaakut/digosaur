@@ -1,0 +1,55 @@
+{
+  "openapi": "3.0.0",
+  "components": {
+    "schemas": {
+      "APIError": {
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Template API",
+    "version": "1"
+  },
+  "paths": {
+    "/apple": {
+      "post": {
+        "operationId": "apple",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Processes Apple Health data exports"
+      }
+    }
+  }
+}

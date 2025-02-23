@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"  # Exposes Loki to the host
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"  # Exposes Grafana to the host
+    depends_on:
+      - loki
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin  # Default login: admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true  # Allow public access
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning  # Auto-configure Loki datasource
+    restart: unless-stopped
+
+volumes:
+  grafana_data:

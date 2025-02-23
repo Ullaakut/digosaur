@@ -1,0 +1,30 @@
+version: 2
+project_name: digosaur
+dist: dist
+
+env:
+  - CGO_ENABLED=0
+
+builds:
+  - id: digosaur
+    binary: digosaur
+    main: ./cmd/digosaur
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+changelog:
+  disable: true
+
+archives:
+  - id: default
+    format: binary
+    allow_different_binary_count: true
+
+release:
+  disable: true
+
+snapshot:
+  version_template: 'dev-{{ slice .FullCommit 0 8 }}'
