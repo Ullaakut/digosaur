@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Ullaakut/digosaur/api"
-	"github.com/Ullaakut/digosaur/pkg/loki"
+	"github.com/Ullaakut/digosaur/pkg/influx"
 	"github.com/hamba/cmd/v2/observe"
 	"github.com/hamba/logger/v2"
 	lctx "github.com/hamba/logger/v2/ctx"
@@ -30,10 +30,12 @@ func runServer(c *cli.Context) error {
 	}
 	defer obsvr.Close()
 
-	loki, err := loki.New(c.String(flagLokiAddr), obsvr)
-	if err != nil {
-		return fmt.Errorf("creating loki client: %w", err)
-	}
+	db := influx.New(
+		c.String(flagInfluxAddr),
+		c.String(flagInfluxToken),
+		c.String(flagInfluxOrg),
+		c.String(flagInfluxBucket),
+	)
 
 	addr := c.String(flagAddr)
 	srv := server.GenericServer[context.Context]{
@@ -42,7 +44,7 @@ func runServer(c *cli.Context) error {
 		Log:   obsvr.Log,
 	}
 
-	srv.Handler = api.New(loki, obsvr)
+	srv.Handler = api.New(db, obsvr)
 
 	obsvr.Log.Info("Starting server", lctx.Str("addr", addr))
 

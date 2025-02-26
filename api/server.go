@@ -1,12 +1,11 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/Ullaakut/digosaur/pkg/loki"
+	"github.com/Ullaakut/digosaur/pkg/influx"
 	"github.com/gamefabric/openapi"
 	kin "github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
@@ -23,25 +22,25 @@ import (
 
 //go:generate oapi-gen -all
 
-// LokiClient represents something that can send entries to Loki.
-type LokiClient interface {
-	Send(ctx context.Context, entries []loki.Stream) error
+// Store represents something that can send entries to Loki.
+type Store interface {
+	Add(pt influx.Point) error
 }
 
 // Server serves web api requests.
 type Server struct {
 	h http.Handler
 
-	sink LokiClient
+	db Store
 
 	log    *logger.Logger
 	tracer trace.Tracer
 }
 
 // New returns a server.
-func New(loki LokiClient, obsvr *observe.Observer) *Server {
+func New(db Store, obsvr *observe.Observer) *Server {
 	srv := &Server{
-		sink:   loki,
+		db:     db,
 		log:    obsvr.Log,
 		tracer: obsvr.Tracer("api"),
 	}

@@ -6,25 +6,32 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
-	"github.com/gamefabric/go-template/api"
+	"github.com/Ullaakut/digosaur/api"
+	"github.com/Ullaakut/digosaur/pkg/influx"
 	"github.com/hamba/cmd/v2/observe"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func TestServer_HandleHello(t *testing.T) {
-	srvUrl := setupTestServer(t)
+func TestServer_HandleApple(t *testing.T) {
+	store := &storeMock{}
+	store.On("Add", mock.Anything).Return(nil)
 
-	resp := requireDoRequest(t, http.MethodGet, srvUrl+"/", nil)
+	srvUrl := setupTestServer(store, t)
+
+	data, err := os.ReadFile("testdata/sample.json")
+	require.NoError(t, err)
+
+	resp := requireDoRequest(t, http.MethodPost, srvUrl+"/apple", data)
 	t.Cleanup(func() { _ = resp.Body.Close() })
 
-	require.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	got, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, `{"message":"Hello, World!"}`, string(got))
+	store.AssertExpectations(t)
 }
 
 func requireDoRequest(t *testing.T, method, url string, body []byte) *http.Response {
@@ -42,15 +49,31 @@ func requireDoRequest(t *testing.T, method, url string, body []byte) *http.Respo
 	return resp
 }
 
-func setupTestServer(t *testing.T) string {
+func setupTestServer(store *storeMock, t *testing.T) string {
 	t.Helper()
 
 	obsvr := observe.NewFake()
 
-	srv := api.New(obsvr)
+	srv := api.New(store, obsvr)
 
 	httpSrv := httptest.NewServer(srv)
 	t.Cleanup(func() { httpSrv.Close() })
 
 	return httpSrv.URL
+}
+
+type storeMock struct {
+	mock.Mock
+}
+
+func (m *storeMock) Add(pt influx.Point) error {
+	args := m.Called(pt)
+
+	// b, err := json.Marshal(pt)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// println(string(b))
+	return args.Error(0)
 }

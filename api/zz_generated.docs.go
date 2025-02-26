@@ -2,3 +2,9 @@
 
 package api
 
+// Docs returns a set of property descriptions per property.
+func (Point) Docs() map[string]string {
+	return map[string]string{
+		"source": "Source of the device that produced the data.",
+	}
+}

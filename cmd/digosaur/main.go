@@ -14,8 +14,11 @@ import (
 )
 
 const (
-	flagAddr     = "addr"
-	flagLokiAddr = "loki.addr"
+	flagAddr         = "addr"
+	flagInfluxAddr   = "influx.addr"
+	flagInfluxToken  = "influx.token"
+	flagInfluxOrg    = "influx.org"
+	flagInfluxBucket = "influx.bucket"
 )
 
 const svcName = "digosaur"
@@ -30,10 +33,28 @@ var flags = cmd.Flags{
 		EnvVars: []string{strcase.ToSNAKE(flagAddr)},
 	},
 	&cli.StringFlag{
-		Name:    flagLokiAddr,
-		Usage:   "The address of the Loki endpoint to send health data to",
-		Value:   "http://localhost:3100",
-		EnvVars: []string{strcase.ToSNAKE(flagLokiAddr)},
+		Name:    flagInfluxAddr,
+		Usage:   "The address of the Influx database to send health data to",
+		Value:   "http://localhost:8086",
+		EnvVars: []string{strcase.ToSNAKE(flagInfluxAddr)},
+	},
+	&cli.StringFlag{
+		Name:    flagInfluxToken,
+		Usage:   "The token to use to authenticate to the influx DB",
+		Value:   "secret",
+		EnvVars: []string{strcase.ToSNAKE(flagInfluxToken)},
+	},
+	&cli.StringFlag{
+		Name:    flagInfluxOrg,
+		Usage:   "The organization within which to store entities in influx DB",
+		Value:   "ullaakut",
+		EnvVars: []string{strcase.ToSNAKE(flagInfluxOrg)},
+	},
+	&cli.StringFlag{
+		Name:    flagInfluxBucket,
+		Usage:   "The bucket within which to store entities in influx DB",
+		Value:   "apple",
+		EnvVars: []string{strcase.ToSNAKE(flagInfluxBucket)},
 	},
 }.Merge(cmd.MonitoringFlags)
 
