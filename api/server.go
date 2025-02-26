@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -24,7 +25,7 @@ import (
 
 // Store represents something that can send entries to Loki.
 type Store interface {
-	Add(pt influx.Point) error
+	Add(ctx context.Context, pt influx.Point) error
 }
 
 // Server serves web api requests.

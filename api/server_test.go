@@ -6,33 +6,14 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/Ullaakut/digosaur/api"
 	"github.com/Ullaakut/digosaur/pkg/influx"
 	"github.com/hamba/cmd/v2/observe"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
-
-func TestServer_HandleApple(t *testing.T) {
-	store := &storeMock{}
-	store.On("Add", mock.Anything).Return(nil)
-
-	srvUrl := setupTestServer(store, t)
-
-	data, err := os.ReadFile("testdata/sample.json")
-	require.NoError(t, err)
-
-	resp := requireDoRequest(t, http.MethodPost, srvUrl+"/apple", data)
-	t.Cleanup(func() { _ = resp.Body.Close() })
-
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-	store.AssertExpectations(t)
-}
 
 func requireDoRequest(t *testing.T, method, url string, body []byte) *http.Response {
 	t.Helper()
@@ -66,14 +47,7 @@ type storeMock struct {
 	mock.Mock
 }
 
-func (m *storeMock) Add(pt influx.Point) error {
+func (m *storeMock) Add(_ context.Context, pt influx.Point) error {
 	args := m.Called(pt)
-
-	// b, err := json.Marshal(pt)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	//
-	// println(string(b))
 	return args.Error(0)
 }

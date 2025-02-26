@@ -1,1 +1,5 @@
 dist
+api/testdata/sample-2.json
+api/testdata/sample-3.json
+api/testdata/sample-4.json
+api/testdata/workout-sample.json

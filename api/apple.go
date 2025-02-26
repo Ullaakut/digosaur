@@ -75,6 +75,10 @@ func (s *Server) handleApple() http.HandlerFunc {
 
 		for _, metric := range health.Data.Metrics {
 			for _, point := range metric.Data {
+				if isEmpty(point) {
+					continue
+				}
+
 				ts, err := time.Parse("2006-01-02 15:04:05 -0700", point.Date)
 				if err != nil {
 					s.log.Error("Failed to parse Apple Health data timestamp", lctx.Err(err))
@@ -82,7 +86,7 @@ func (s *Server) handleApple() http.HandlerFunc {
 					return
 				}
 
-				err = s.db.Add(influx.Point{
+				err = s.db.Add(req.Context(), influx.Point{
 					Name: metric.Name,
 					Unit: metric.Units,
 					Date: ts,
@@ -104,8 +108,12 @@ func (s *Server) handleApple() http.HandlerFunc {
 					},
 				})
 				if err != nil {
-					s.log.Error("Failed to push metric to db", lctx.Err(err))
-					render.JSONError(rw, http.StatusBadRequest, fmt.Sprintf("invalid data: %v", err))
+					s.log.Error("Failed to push metric to db",
+						lctx.Err(err),
+						lctx.Str("metric", metric.Name),
+						lctx.Interface("point", point),
+					)
+					render.JSONInternalServerError(rw)
 					return
 				}
 			}
@@ -115,4 +123,21 @@ func (s *Server) handleApple() http.HandlerFunc {
 
 		rw.WriteHeader(http.StatusOK)
 	})
+}
+
+func isEmpty(p Point) bool {
+	return p.Quantity == 0 &&
+		p.Average == 0 &&
+		p.Minimum == 0 &&
+		p.Maximum == 0 &&
+		p.Deep == 0 &&
+		p.Core == 0 &&
+		p.Awake == 0 &&
+		p.Asleep == 0 &&
+		p.Rem == 0 &&
+		p.InBed == 0 &&
+		p.SleepEnd == "" &&
+		p.InBedStart == "" &&
+		p.InBedEnd == "" &&
+		p.SleepStart == ""
 }

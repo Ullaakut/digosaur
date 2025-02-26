@@ -56,7 +56,7 @@ type Data struct {
 }
 
 // Add adds a point to the Influx database.
-func (c *Client) Add(point Point) error {
+func (c *Client) Add(ctx context.Context, point Point) error {
 	m, err := toMap(point.Data)
 	if err != nil {
 		return fmt.Errorf("converting point data to map: %w", err)
@@ -70,13 +70,21 @@ func (c *Client) Add(point Point) error {
 		point.Date,
 	)
 
-	return writeAPI.WritePoint(context.Background(), p)
+	err = writeAPI.WritePoint(ctx, p)
+	if err != nil {
+		return fmt.Errorf("writing point: %w", err)
+	}
+	return nil
 }
 
 func toMap(s any) (map[string]any, error) {
 	data, err := json.Marshal(s)
 	if err != nil {
 		return nil, err
+	}
+
+	if string(data) == "{}" {
+		return nil, fmt.Errorf("empty data: %v", s)
 	}
 
 	var result map[string]any

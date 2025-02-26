@@ -1,15 +1,21 @@
 version: '3.8'
 
 services:
-  loki:
-    image: grafana/loki:latest
-    container_name: loki
-    volumes:
-      - ./loki-config.yaml:/etc/loki/local-config.yaml
-    ports:
-      - "3100:3100"  # Exposes Loki to the host
-    command: -config.file=/etc/loki/local-config.yaml
+  influxdb:
+    image: influxdb:2.7 # Use the latest InfluxDB 2.x version
+    container_name: influxdb
     restart: unless-stopped
+    ports:
+      - "8086:8086" # Expose InfluxDB API port
+    environment:
+      - INFLUXDB_INIT_MODE=setup
+      - INFLUXDB_INIT_USERNAME=ullaakut
+      - INFLUXDB_INIT_PASSWORD=secretsecret
+      - INFLUXDB_INIT_ORG=ullaakut
+      - INFLUXDB_INIT_BUCKET=apple
+      - INFLUXDB_INIT_ADMIN_TOKEN=KpMhxUxxjwVmz280Zpj2F_QZBfa3SU_e9vGhMCL0kBy6VgNCVXYJLSj8aV19CnNjiqFr8PHCImtmR8vwKbc0VA==
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
 
   grafana:
     image: grafana/grafana:latest
@@ -17,7 +23,7 @@ services:
     ports:
       - "3000:3000"  # Exposes Grafana to the host
     depends_on:
-      - loki
+      - influxdb
     environment:
       - GF_SECURITY_ADMIN_USER=admin  # Default login: admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -29,3 +35,4 @@ services:
 
 volumes:
   grafana_data:
+  influxdb-data:
